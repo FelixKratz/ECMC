@@ -26,9 +26,9 @@ void container_add_particle(struct container* container, struct particle* partic
 }
 
 static void container_periodic_distance(struct container* container, struct vector* vector) {
-  double* _vector = (double*) vector;
-  double* _L_half = (double*) &container->bounds.L_half;
-  double* _L = (double*) &container->bounds.L;
+  double* restrict _vector = (double*) vector;
+  double* restrict _L_half = (double*) &container->bounds.L_half;
+  double* restrict _L = (double*) &container->bounds.L;
 
   for (uint32_t i = 0; i < DIM; i++) {
     _vector[i] += (_vector[i] < -_L_half[i]) * _L[i]
@@ -43,14 +43,15 @@ static void container_periodic_distance(struct container* container, struct vect
 }
 
 struct contact container_first_contact_in_direction(struct container* container, struct particle* source, struct vector direction, double cutoff) {
-  struct contact contact;
+  struct contact contact = { 0 };
   struct vector connection_vector;
   struct particle* target;
   contact.source = source;
   contact.target = NULL;
   contact.distance = DOUBLE_MAX;
-  double squared_range = (cutoff + 2. * container->largest_bounding_radius)
-                         * (cutoff + 2. * container->largest_bounding_radius);
+
+  double range = cutoff + 2. * container->largest_bounding_radius;
+  double squared_range = range * range;
 
   // Naive implementation where every particle is checked for a contact
   // TODO: Implement Verlet list as a possible optimization
@@ -69,8 +70,8 @@ struct contact container_first_contact_in_direction(struct container* container,
                                                 direction,
                                                 squared_range     );
 
-    if (distance > 0 && distance < contact.distance) {
-      distance -= EPSILON;
+    if (distance >= 0. && distance < contact.distance) {
+      distance = (distance > EPSILON) ? distance - EPSILON : 0.;
       contact.distance = distance;
       contact.target = target;
     }

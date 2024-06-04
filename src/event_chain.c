@@ -20,10 +20,17 @@ void event_chain_set_container(struct event_chain* event_chain, struct container
 // Performs the move and lifting of the event chain
 static struct particle* event_chain_lift(struct event_chain* event_chain) {
   // Get the first contact in a given direction
-  struct contact contact = container_first_contact_in_direction(event_chain->container,
-                                                                event_chain->active_particle,
-                                                                event_chain->direction,
-                                                                event_chain->length          );
+  struct contact contact
+         = container_first_contact_in_direction(event_chain->container,
+                                                event_chain->active_particle,
+                                                event_chain->direction,
+                                                event_chain->length          );
+
+  if (contact.distance == 0.) {
+    // The contact is immediate (< EPSILON), no movement is needed.
+    return contact.target;
+  }
+
   if (contact.distance > event_chain->length) {
     // Collision not in range
     contact.target = NULL;

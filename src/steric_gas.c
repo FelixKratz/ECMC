@@ -1,12 +1,12 @@
 #include "steric_gas.h"
 
-void steric_gas_init(struct steric_gas* steric_gas) {
+void steric_gas_init(struct steric_gas* steric_gas, double size) {
   event_chain_init(&steric_gas->event_chain);
   container_init(&steric_gas->container);
 
   struct bounds bounds;
   for (uint32_t i = 0; i < DIM; i++) {
-    *vector_component(&bounds.L, i) = 10.;
+    *vector_component(&bounds.L, i) = size;
   }
 
   container_set_bounds(&steric_gas->container, bounds);

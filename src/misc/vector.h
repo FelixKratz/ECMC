@@ -5,50 +5,49 @@
 #include <string.h>
 #include <math.h>
 
-
+#define DIM 3
 struct vector {
    double x, y, z;
 };
 
-#define DIM sizeof(struct vector) / sizeof(double)
+#define vector_component(vector, index) ((double*)vector + index)
 
-static inline double* vector_component(struct vector* v1, uint32_t index) {
-  return ((double*)v1 + index);
-}
-
-static inline void vector_add(struct vector* v1, struct vector* v2) {
+static inline void vector_add(struct vector* restrict v1, struct vector* restrict v2) {
   for (uint32_t i = 0; i < DIM; i++)
     *vector_component(v1, i) += *vector_component(v2, i);
 }
 
-static inline void vector_subtract(struct vector* v1, struct vector* v2) {
+static inline void vector_subtract(struct vector* restrict v1, struct vector* restrict v2) {
   for (uint32_t i = 0; i < DIM; i++)
     *vector_component(v1, i) -= *vector_component(v2, i);
 }
 
 static inline double vector_product(struct vector* v1, struct vector* v2) {
-  double product = 0.;
+  double sum[DIM];
   for (uint32_t i = 0; i < DIM; i++)
-    product += *vector_component(v1, i) * *vector_component(v2, i);
+    sum[i] = *vector_component(v1, i) * *vector_component(v2, i);
+
+  double product = 0.;
+  for (uint32_t i = 0; i < DIM; i++) product += sum[i];
 
   return product;
 }
 
-static inline void vector_divide(struct vector* v1, double divisor) {
+static inline void vector_divide(struct vector* restrict v1, double divisor) {
   for (uint32_t i = 0; i < DIM; i++)
     *vector_component(v1, i) /= divisor;
 }
 
-static inline void vector_scale(struct vector* v1, double scale) {
+static inline void vector_scale(struct vector* restrict v1, double scale) {
   for (uint32_t i = 0; i < DIM; i++)
     *vector_component(v1, i) *= scale;
 }
 
-static inline double vector_norm_squared(struct vector* v1) {
+static inline double vector_norm_squared(struct vector* restrict v1) {
   return vector_product(v1, v1); 
 }
 
-static inline double vector_norm(struct vector* v1) {
+static inline double vector_norm(struct vector* restrict v1) {
   return sqrt(vector_norm_squared(v1)); 
 }
 
