@@ -1,4 +1,5 @@
-CFLAGS = -std=c99 -g -Wall -Ofast -ffast-math
+CC     = clang
+CFLAGS = -std=c99 -Wall -Ofast -fno-stack-protector -ffast-math
 LIBS   =
 ODIR   = bin
 SRC    = src

@@ -19,28 +19,41 @@ void event_chain_set_container(struct event_chain* event_chain, struct container
 
 // Performs the move and lifting of the event chain
 static struct particle* event_chain_lift(struct event_chain* event_chain) {
+  // Get the first contact in a given direction
   struct contact contact = container_first_contact_in_direction(event_chain->container,
                                                                 event_chain->active_particle,
                                                                 event_chain->direction,
                                                                 event_chain->length          );
-  if (contact.distance > event_chain->length)
+  if (contact.distance > event_chain->length) {
+    // Collision not in range
     contact.target = NULL;
+  }
 
+  // Set the (normalized) direction vector for the offset
   struct vector offset = event_chain->direction;
 
   if (contact.target) {
     // We have a contact and move the active particle to the contact,
     // then lift to the resting particle and continue the event chain
+
+    // The offset vector still has length 1 and we must scale it with the
+    // actual contact distance
     vector_scale(&offset, contact.distance);
+
+    // The remaining event chain distance is reduced by the contact distance
     event_chain->length -= contact.distance;
   }
   else {
     // We have no contact in range and move the particle to the end of
     // the event chain, then the event chain will be completed
     vector_scale(&offset, event_chain->length);
+
+    // Event Chain is done.
     event_chain->length = 0.;
   }
 
+  // The container performs the book keeping for the particle positions, so
+  // we tell it to finally move the active particle
   container_move_particle(event_chain->container,
                           event_chain->active_particle,
                           offset                       );
@@ -80,6 +93,7 @@ void event_chain_step(struct event_chain* event_chain) {
   #endif
 }
 
+// Helper function to resolve particle overlaps via the event chain logic
 void event_chain_resolve_overlaps(struct event_chain* event_chain, struct particle* particle) {
   for (;;) {
     struct contact contact = container_overlap_for_particle(event_chain->container,
