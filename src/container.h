@@ -35,6 +35,7 @@ void container_add_particle(struct container* container, struct particle* partic
 void container_move_particle(struct container* container, struct particle* particle, struct vector position);
 void container_set_bounds(struct container* container, struct bounds bounds);
 struct contact container_first_contact_in_direction(struct container* container, struct particle* particle, struct vector direction, double cutoff);
+void container_periodic_distance(struct container* container, struct vector* vector);
 struct contact container_overlap_for_particle(struct container* container, struct particle* particle);
 void container_set_random_position_for_particle(struct container* container, struct particle* particle);
 void container_set_random_valid_position_for_particle(struct container* container, struct particle* particle);

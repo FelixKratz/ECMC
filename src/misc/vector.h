@@ -23,19 +23,10 @@ static inline void vector_subtract(struct vector* restrict v1, struct vector* re
 }
 
 static inline double vector_product(struct vector* v1, struct vector* v2) {
-  double sum[DIM];
-  for (uint32_t i = 0; i < DIM; i++)
-    sum[i] = *vector_component(v1, i) * *vector_component(v2, i);
-
   double product = 0.;
-  for (uint32_t i = 0; i < DIM; i++) product += sum[i];
-
-  return product;
-}
-
-static inline void vector_divide(struct vector* restrict v1, double divisor) {
   for (uint32_t i = 0; i < DIM; i++)
-    *vector_component(v1, i) /= divisor;
+    product += *vector_component(v1, i) * *vector_component(v2, i);
+  return product;
 }
 
 static inline void vector_scale(struct vector* restrict v1, double scale) {

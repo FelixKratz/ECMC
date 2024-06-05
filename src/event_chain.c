@@ -1,12 +1,14 @@
 #include "event_chain.h"
+#include "container.h"
+#include "misc/vector.h"
 
 // Initializes the event chain and seeds the random number generator
 void event_chain_init(struct event_chain* event_chain) {
   event_chain->container = NULL;
   event_chain->active_particle = NULL;
   event_chain->length = 1.;
+  event_chain->total_displacement = 0.;
   random_init(&event_chain->random);
-
   random_seed(&event_chain->random,
               time(NULL) ^ (intptr_t)&printf,
               time(NULL) ^ (intptr_t)&event_chain);
@@ -26,14 +28,14 @@ static struct particle* event_chain_lift(struct event_chain* event_chain) {
                                                 event_chain->direction,
                                                 event_chain->length          );
 
-  if (contact.distance == 0.) {
-    // The contact is immediate (< EPSILON), no movement is needed.
-    return contact.target;
-  }
-
   if (contact.distance > event_chain->length) {
     // Collision not in range
     contact.target = NULL;
+  }
+
+  if (contact.target && contact.distance == 0.) {
+    // The contact is immediate (< EPSILON), no movement is needed.
+    return contact.target;
   }
 
   // Set the (normalized) direction vector for the offset
@@ -69,14 +71,27 @@ static struct particle* event_chain_lift(struct event_chain* event_chain) {
 }
 
 // The current event chain move is performed
-void event_chain_move(struct event_chain* event_chain) {
+double event_chain_move(struct event_chain* event_chain) {
+  double displacement = 0;
   while (event_chain->active_particle) {
+    struct vector initial_position = event_chain->active_particle->position;
+
+    struct particle* prev_particle = event_chain->active_particle;
     event_chain->active_particle = event_chain_lift(event_chain);
+    struct vector distance = event_chain->active_particle
+                             ? event_chain->active_particle->position
+                             : prev_particle->position;
+
+    vector_subtract(&distance, &initial_position);
+    container_periodic_distance(event_chain->container, &distance);
+    displacement += vector_product(&distance, &event_chain->direction);
   }
+
+  return displacement;
 }
 
 // A new event chain move is set up by randomizing particle/direction
-void event_chain_randomize(struct event_chain* event_chain) {
+static void event_chain_randomize(struct event_chain* event_chain) {
   // Pick random particle and random event chain direction:
   uint32_t sel = random_uint32_bounded(&event_chain->random,
                                        event_chain->container->particle_count);
@@ -89,7 +104,10 @@ void event_chain_randomize(struct event_chain* event_chain) {
 // An event chain step is performed
 void event_chain_step(struct event_chain* event_chain) {
   event_chain_randomize(event_chain);
-  event_chain_move(event_chain);
+  double length = event_chain->length;
+  double displacement = event_chain_move(event_chain);
+
+  event_chain->total_displacement += displacement / length;
 
   #ifdef DEBUG
   // Check if configuration is valid after every event chain step
@@ -103,8 +121,9 @@ void event_chain_step(struct event_chain* event_chain) {
 // Helper function to resolve particle overlaps via the event chain logic
 void event_chain_resolve_overlaps(struct event_chain* event_chain, struct particle* particle) {
   for (;;) {
-    struct contact contact = container_overlap_for_particle(event_chain->container,
-                                                            particle               );
+    struct contact contact
+                     = container_overlap_for_particle(event_chain->container,
+                                                      particle               );
     if (!contact.target) return;
 
     event_chain->direction = random_unit_vector(&event_chain->random);

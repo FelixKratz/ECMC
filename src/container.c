@@ -25,7 +25,7 @@ void container_add_particle(struct container* container, struct particle* partic
     container->largest_bounding_radius = bounding_radius;
 }
 
-static void container_periodic_distance(struct container* container, struct vector* vector) {
+void container_periodic_distance(struct container* container, struct vector*  vector) {
   double* restrict _vector = (double*) vector;
   double* restrict _L_half = (double*) &container->bounds.L_half;
   double* restrict _L = (double*) &container->bounds.L;
@@ -71,7 +71,7 @@ struct contact container_first_contact_in_direction(struct container* container,
                                                 squared_range     );
 
     if (distance >= 0. && distance < contact.distance) {
-      distance = (distance > EPSILON) ? distance - EPSILON : 0.;
+      distance = (distance > EPSILON) ? (distance - EPSILON) : 0.;
       contact.distance = distance;
       contact.target = target;
     }
