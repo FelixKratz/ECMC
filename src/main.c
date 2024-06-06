@@ -5,7 +5,7 @@ void benchmark() {
   printf("[?] Starting Benchmark...\n");
   struct steric_gas steric_gas;
   steric_gas_init(&steric_gas, 10.0);
-  steric_gas_fill_to_packing_fraction(&steric_gas, 1.0, .4, true);
+  steric_gas_fill_to_packing_fraction(&steric_gas, 1.0, .6, true, true);
   container_export(&steric_gas.container, "init.dat");
 
   clock_t begin = clock();
@@ -20,7 +20,7 @@ void benchmark() {
   printf("\r[+] Finished.                         \n");
 }
 
-void measure_equation_of_state(char* output_path, double lower_eta_bound, double upper_eta_bound, uint32_t samples) {
+void measure_equation_of_state(char* output_path, double lower_eta_bound, double upper_eta_bound, uint32_t samples, bool fcc) {
   double eta_step = (upper_eta_bound - lower_eta_bound)
                     / (double)samples;
   double eta = lower_eta_bound;
@@ -43,6 +43,7 @@ void measure_equation_of_state(char* output_path, double lower_eta_bound, double
     etas[i] = steric_gas_fill_to_packing_fraction(&steric_gas,
                                                   1.0,
                                                   eta,
+                                                  fcc,
                                                   false       );
 
     struct measurements measurements = steric_gas_simulate(&steric_gas,
@@ -62,7 +63,8 @@ void measure_equation_of_state(char* output_path, double lower_eta_bound, double
 
 int main (int argc, char** argv) {
   // benchmark();
-  measure_equation_of_state("eos.txt", 0, 0.6, 20);
-  measure_equation_of_state("eos_pt.txt", 0.5, 0.6, 20);
+  measure_equation_of_state("eos.txt", 0, 0.4, 20, false);
+  measure_equation_of_state("eos_pt.txt", 0.5, 0.6, 20, false);
+  measure_equation_of_state("eos_pt_fcc.txt", 0.45, 0.55, 20, true);
   return 0;
 }

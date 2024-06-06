@@ -18,39 +18,54 @@ void steric_gas_destroy(struct steric_gas* steric_gas) {
   container_destroy(&steric_gas->container);
 }
 
-double steric_gas_fill_to_packing_fraction(struct steric_gas* steric_gas, double sigma, double eta, bool verbose) {
+double steric_gas_fill_to_packing_fraction(struct steric_gas* steric_gas, double sigma, double eta, bool fcc, bool verbose) {
   if (verbose) printf("[?] Trying to achieve valid configuration");
 
+  double count = 0;
   double packing_fraction = 0.;
   while (packing_fraction < eta) {
     struct particle* particle = particle_create();
     particle->radius = sigma / 2.;
 
-    container_set_random_position_for_particle(&steric_gas->container,
-                                               particle               );
+    if (fcc) {
+      double spacing[DIM];
+      for (int i = 0; i < DIM; i++) {
+        spacing[i] = ((i != 1) ? 0.5 : 1.) * sqrt(2) * (sigma + 1e-3);
+      }
+      container_set_fcc_position_for_particle(&steric_gas->container,
+                                              particle,
+                                              spacing,
+                                              count                  );
+
+    } else {
+      container_set_random_position_for_particle(&steric_gas->container,
+                                                 particle               );
+    }
 
     container_add_particle(&steric_gas->container, particle);
 
     packing_fraction = steric_gas->container.particle_count * 1./6. * M_PI
                        * sigma * sigma * sigma
                        / (steric_gas->container.volume);
-
+    count++;
   }
 
-  for (uint32_t i = 0; i < steric_gas->container.particle_count; i++) {
-    if (verbose) {
-      printf("\r[?] Resolving overlaps via EC: %d / %d",
-             i + 1,
-             steric_gas->container.particle_count       );
-    }
+  if (!fcc) {
+    for (uint32_t i = 0; i < steric_gas->container.particle_count; i++) {
+      if (verbose) {
+        printf("\r[?] Resolving overlaps via EC: %d / %d",
+               i + 1,
+               steric_gas->container.particle_count       );
+      }
 
-    event_chain_resolve_overlaps(&steric_gas->event_chain,
-                                 steric_gas->container.particles[i]);
+      event_chain_resolve_overlaps(&steric_gas->event_chain,
+                                   steric_gas->container.particles[i]);
+    }
   }
 
   #ifdef DEBUG
   if (!container_configuration_valid(&steric_gas->container)) {
-    printf("\n[x] Configuration still invalid\n");
+    printf("\n[x] Initial Configuration invalid\n");
     exit(1);
   }
   #endif
@@ -59,7 +74,7 @@ double steric_gas_fill_to_packing_fraction(struct steric_gas* steric_gas, double
     printf("\r[+] Valid Initial Configuration with eta = %f\n",
                                               packing_fraction);
   }
-    
+
   return packing_fraction;
 }
 

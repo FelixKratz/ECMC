@@ -39,5 +39,6 @@ void container_periodic_distance(struct container* container, struct vector* vec
 struct contact container_overlap_for_particle(struct container* container, struct particle* particle);
 void container_set_random_position_for_particle(struct container* container, struct particle* particle);
 void container_set_random_valid_position_for_particle(struct container* container, struct particle* particle);
+void container_set_fcc_position_for_particle(struct container* container, struct particle* particle, double spacing[DIM], uint32_t id);
 bool container_configuration_valid(struct container* container);
 void container_export(struct container* container, char* file);

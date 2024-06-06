@@ -13,5 +13,5 @@ struct steric_gas {
 void steric_gas_init(struct steric_gas* steric_gas, double size);
 void steric_gas_destroy(struct steric_gas* steric_gas);
 
-double steric_gas_fill_to_packing_fraction(struct steric_gas* steric_gas, double sigma, double eta, bool verbose);
+double steric_gas_fill_to_packing_fraction(struct steric_gas* steric_gas, double sigma, double eta, bool fcc, bool verbose);
 struct measurements steric_gas_simulate(struct steric_gas* steric_gas, uint32_t steps, bool verbose);

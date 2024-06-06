@@ -10,6 +10,7 @@ struct event_chain {
   struct random random;
   double length;
   double total_displacement;
+  int total_lift_count;
 };
 
 void event_chain_init(struct event_chain* event_chain);

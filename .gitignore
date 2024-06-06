@@ -4,3 +4,4 @@ bin
 .ccls-cache
 compile_commands.json
 .cache
+*.txt

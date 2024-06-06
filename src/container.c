@@ -169,6 +169,31 @@ void container_set_random_valid_position_for_particle(struct container* containe
   }
 }
 
+void container_set_fcc_position_for_particle(struct container* container, struct particle* particle, double spacing[DIM], uint32_t id) {
+  if (DIM != 3) {
+    printf("FCC only implemented in 3D!\n");
+    exit(1);
+  }
+
+  uint32_t count[DIM];
+  for (uint32_t i = 0; i < DIM; i++) {
+    count[i] = (*vector_component(&container->bounds.L, i)) / spacing[i];
+  }
+
+  uint32_t index[DIM];
+  index[2] = id / (count[0] * count[1]);
+  id -= index[2] * (count[0] * count[1]);
+  index[1] = id / count[0];
+  id -= index[1] * count[0];
+  index[0] = id;
+
+  double offset = ((index[0] % 2) + (index[2] % 2)) * spacing[1] / 2.;
+  for (uint32_t i = 0; i < DIM; i++) {
+    *vector_component(&particle->position, i) = index[i] * spacing[i]
+                                                + (i == 1) * offset;
+  }
+}
+
 void container_export(struct container* container, char* file) {
   if (!container_configuration_valid(container))
     printf("\n[!] Configuration for: '%s' invalid!\n", file);
